@@ -1,0 +1,11 @@
+#square_map {
+    position: absolute;
+    top: 10px;
+    left: 330px;
+}
+
+#circle_map {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
