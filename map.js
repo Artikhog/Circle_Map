@@ -1,13 +1,5 @@
 var circle_stage, square_stage, circle_map, square_map, main_drone_circle;
 
-//todo: 0. Рефакторинг +++
-//      1. Ресайз в зависимости от размеров канваса +++
-//      2. Разобраться с движением других объектов (нихуя не работает)
-//      3. Прикрутить png ???
-//      4. Распарсить json
-//      5. Запустить сервер на локалке, затестить карту
-//      6. Не заебаться парсить json
-
 function init() {
     var circle_map_canvas = document.getElementById('circle_map');
     var square_map_canvas = document.getElementById('square_map');
