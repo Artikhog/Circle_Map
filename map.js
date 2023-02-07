@@ -41,22 +41,18 @@ window.onkeydown = function (e) {
     switch (e.code) {
         case 'KeyW':
             main_drone_circle.y -= 0.1;
-            circle_map.obj_container.regY -= 0.1 * circle_map.scale
             circle_map.draw();
             break;
         case 'KeyS':
             main_drone_circle.y += 0.1;
-            circle_map.obj_container.regY += 0.1 * circle_map.scale
             circle_map.draw();
             break;
         case 'KeyA':
             main_drone_circle.x -= 0.1;
-            circle_map.obj_container.regX -= 0.1 * circle_map.scale
             circle_map.draw();
             break;
         case 'KeyD':
             main_drone_circle.x += 0.1;
-            circle_map.obj_container.regX += 0.1 * circle_map.scale
             circle_map.draw();
             break;
         case 'KeyE':
@@ -70,25 +66,19 @@ window.onkeydown = function (e) {
 
 
         case 'KeyI':
-            circle_map.obj_container.removeAllChildren()
-            circle_map.obj_container.y -= 1;
+            circle_map.drone1.drone.regY += 1;
             circle_map.draw();
             break;
         case 'KeyK':
-            circle_map.drone1.y += 0.1;
+            circle_map.drone1.drone.regY -= 1;
             circle_map.draw();
             break;
         case 'KeyJ':
-            circle_map.drone1.x -= 0.1;
+            circle_map.drone1.drone.regX += 1;
             circle_map.draw();
             break;
         case 'KeyL':
-            circle_map.map_container.removeChild(circle_map.map_container.drone1);
-            circle_map.drone1.x += 0.1;
-            circle_map.draw();
-            break;
-        case 'KeyP':
-            circle_map.map_container.removeChild(circle_map.map_container.drone1);
+            circle_map.drone1.drone.regX -= 1;
             circle_map.draw();
             break;
     }
@@ -109,11 +99,6 @@ class Map {
         this.map_container.y = center;
         this.map_container.regX = main_drone.x * this.scale;
         this.map_container.regY = main_drone.y * this.scale;
-        this.obj_container = new createjs.Container();
-        this.obj_container.x = center;
-        this.obj_container.y = center;
-        this.obj_container.regX = main_drone.x * this.scale;
-        this.obj_container.regY = main_drone.y * this.scale;
     }
     start1 = new Start_Place(9, 9, 'blue');
     start2 = new Start_Place(7, 9, 'blue');
@@ -170,7 +155,7 @@ class Map {
         this.map_container.addChild(this.start6.start);
         this.map_container.addChild(this.start7.start);
         this.map_container.addChild(this.start8.start);
-        this.obj_container.addChild(this.drone1.drone);
+        this.map_container.addChild(this.drone1.drone);
     }
     spin(right_left) {
         switch (right_left) {
@@ -193,8 +178,6 @@ class Map {
     update() {
         this.map_container.regX = this.main_drone.x * this.scale;
         this.map_container.regY = this.main_drone.y * this.scale;
-        this.obj_container.regX = this.main_drone.x * this.scale;
-        this.obj_container.regY = this.main_drone.y * this.scale;
     }
     show_info() {
         var x_info = new createjs.Text(`x:${Math.round(this.main_drone.x*10)/10}`, "20px Arial", "#ff7700");
