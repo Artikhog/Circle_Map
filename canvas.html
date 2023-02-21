@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv='cache-control' content='no-cache'>
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
     <title>Canvas</title>
     <link rel="stylesheet" href="canvas.css">
     <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
-    <script src="./Управление. Кубок Геоскан_files/jquery.min.js"></script>
+    <script src="jquery.min.js"></script>
     <script src="map.js"></script>
     <script src="template.js"></script>
 
 </head>
 <body onload="start();">
 <div id = "map_div">
-    <div id="check">hello</div>
-    <canvas id="circle_map" width="300" height="300" style="border: green solid 5px">></canvas>
+    <canvas id="map" width="300" height="300" style="border: green solid 5px">></canvas>
+    <img id="start" src="start.png">
+    <img id="factory" src="factory.png">
+    <img id="charger" src="charger.png">
 </div>
 
 </body>

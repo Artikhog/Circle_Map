@@ -1,6 +1,20 @@
+#start{
+    width: 0px;
+    height: 0px;
+}
+
+#factory{
+    width: 0px;
+    height: 0px;
+}
+
+#charger{
+    width: 0px;
+    height: 0px;
+}
 
 #circle_map {
     position: absolute;
-    top: 50px;
+    top: 10px;
     left: 10px;
 }
