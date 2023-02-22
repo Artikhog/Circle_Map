@@ -2,8 +2,8 @@ function start() {
     var canvas = document.getElementById('map');
     var stage = new createjs.Stage(canvas);
     add_ticker(6000, stage);
+    var map = new Map(4, stage, canvas.width / 2, 100);
 
-    var map = new Map(4, stage, canvas.width / 2, 700);
     map.draw_all();
 
     add_keyboard(map.drones[map.main_drone_number], map);
@@ -15,22 +15,6 @@ function start() {
     }, 1000);
 }
 
-function loaderCompleteHandler() {
-    var canvas = document.getElementById('circle_map');
-    stage = new createjs.Stage(canvas);
-    add_ticker(6000, stage);
-
-    main_drone= new Drone(2, 2, 'red');
-    map = new Map(main_drone, stage, canvas.width / 2, 800);
-    map.draw_all();
-    add_keyboard(main_drone, map);
-    getMapInfo(map);
-    getUserInfo(map);
-    setInterval(function () {
-        getUserInfo(map);
-        map.draw_objects();
-    }, 1000);
-}
 //10.10.0.162:31222/user?user=all
 //http://127.0.0.1:5555/?target=get&type_command=player&command=visualization&param=0
 function getUserInfo(map) {
@@ -49,10 +33,6 @@ function getUserInfo(map) {
             }
             map.draw_map();
             map.draw_objects();
-
-            // map.angle = res.data.team_info.Red.players[7].current_pos[3] * 180;
-
-            // console.log()
         }).catch(function (e) {
             console.log(e)
         }));
