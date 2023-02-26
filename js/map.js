@@ -72,8 +72,8 @@ class Map {
         for (let i = 0; i < 4; i++) {
             this.blue_drones[i].draw();
             this.red_drones[i].draw();
-            this.map_container.addChild(this.blue_drones[i].drone);
-            this.map_container.addChild(this.red_drones[i].drone);
+            this.map_container.addChild(this.blue_drones[i].aim, this.blue_drones[i].drone, this.blue_drones[i].bitmap, this.blue_drones[i].fire_bitmap);
+            this.map_container.addChild(this.red_drones[i].aim, this.red_drones[i].drone, this.red_drones[i].bitmap, this.red_drones[i].fire_bitmap);
         }
     }
     add_objects() {
@@ -82,13 +82,12 @@ class Map {
             this.red_drones[i] = new Drone(this.locus_x, this.locus_y, 'red', this.scale);
             this.blue_starts[i] = new Place(this.locus_x, this.locus_y, 'blue', this.scale, 'start');
             this.red_starts[i] = new Place(this.locus_x, this.locus_y, 'red', this.scale, 'start');
-            this.factories[i] = new Place(this.locus_x, this.locus_y, 'grey', this.scale, 'factory', 1.6);
+            this.factories[i] = new Place(this.locus_x, this.locus_y, 'grey', this.scale, 'vertiport', 1);
         }
-        this.chargers[0] = new Place(this.locus_x, this.locus_y,'green', this.scale, 'charger', 0.6);
-        this.chargers[1] = new Place(this.locus_x, this.locus_y, 'green', this.scale, 'charger', 0.6);
+        this.chargers[0] = new Place(this.locus_x, this.locus_y,'none', this.scale, 'charger', 0.6);
+        this.chargers[1] = new Place(this.locus_x, this.locus_y, 'none', this.scale, 'charger', 0.6);
     }
     parse_json(data) {
-
         for (let i = 0; i < 4; i++) {
             this.factories[i].update(data.polygon_info[i]);
             this.blue_starts[i].update(data.polygon_info[i + 4]);
@@ -111,18 +110,20 @@ class Map {
     rotate() {
         createjs.Tween.get(this.map_container).to({
             rotation: this.angle
-        }, 300);
+        }, 200);
     }
     update() {
         switch (this.main_drone_color) {
             case 'blue':
                 this.map_container.regX = this.blue_drones[this.main_drone_number].map_center_x + this.blue_drones[this.main_drone_number].drone.x;
                 this.map_container.regY = this.blue_drones[this.main_drone_number].map_center_y + this.blue_drones[this.main_drone_number].drone.y;
-                this.angle = this.blue_drones[this.main_drone_number].drone.angle;
+                this.angle = this.blue_drones[this.main_drone_number].angle;
+                break;
             case 'red':
                 this.map_container.regX = this.red_drones[this.main_drone_number].map_center_x + this.red_drones[this.main_drone_number].drone.x;
                 this.map_container.regY = this.red_drones[this.main_drone_number].map_center_y + this.red_drones[this.main_drone_number].drone.y;
                 this.angle = this.red_drones[this.main_drone_number].angle;
+                break;
         }
     }
     add_mask(color = 'grey') {
@@ -153,29 +154,54 @@ class Map {
     }
 }
 class Drone {
-    constructor(locus_x, locus_y, color, scale, scale_koeff = 0.2) {
+    constructor(locus_x, locus_y, color, scale, scale_koef = 0.2, aim_koef = 2) {
         this.x = locus_y * scale;
         this.y = locus_x * scale;
         this.map_center_x = locus_x * scale;
         this.map_center_y = locus_y * scale;
         this.color = color;
         this.map_scale = scale;
-        this.scale_koeff = scale_koeff;
+        this.scale_koef = scale_koef;
+        this.aim_koef = aim_koef;
+        this.angle = 0;
         this.drone = new createjs.Shape();
+        this.aim = new createjs.Shape();
+        this.bitmap = new createjs.Bitmap(document.getElementById(color));
         this.is_bloking = false;
         this.is_cargo = false;
         this.is_connected = false;
         this.is_shooting = false;
     }
     draw() {
-        this.drone.graphics.beginFill(this.color)
-            .drawCircle(this.map_center_x, this.map_center_y, this.map_scale * this.scale_koeff);
-    }
-    animation() {
-        createjs.Tween.get(this.drone).to({
-            x:  this.x * this.map_scale,
-            y:  this.y * this.map_scale,
-        }, 600);
+        if (this.is_bloking) {
+            this.bitmap = new createjs.Bitmap(document.getElementById("jdun"));
+            this.bitmap.x = this.map_center_x + this.drone.x;
+            this.bitmap.y = this.map_center_y + this.drone.y;
+            this.bitmap.regX = 55 * this.scale_koef * 25;
+            this.bitmap.regY = 55 * this.scale_koef * 25;
+            this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koef / 90;
+            this.bitmap.rotation = - this.angle;
+
+        }
+        else {
+            this.bitmap = new createjs.Bitmap(document.getElementById(this.color));
+            this.bitmap.x = this.map_center_x + this.drone.x;
+            this.bitmap.y = this.map_center_y + this.drone.y;
+            this.bitmap.regX = 55 * this.scale_koef * 2.5;
+            this.bitmap.regY = 55 * this.scale_koef * 2.5;
+            this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koef * 0.8 / 15;
+            this.bitmap.rotation = - this.angle;
+        }
+        this.aim.x = this.drone.x;
+        this.aim.y = this.drone.y;
+        this.aim.graphics
+            .beginStroke('green')
+            .moveTo(this.map_center_x + this.map_scale * this.scale_koef * 0.15 * this.aim_koef, this.map_center_y + this.map_scale * this.scale_koef * 0.15 * this.aim_koef)
+            .lineTo(this.map_center_x - this.map_scale * this.scale_koef * 0.15 * this.aim_koef, this.map_center_y - this.map_scale * this.scale_koef * 0.15 * this.aim_koef)
+            .moveTo(this.map_center_x - this.map_scale * this.scale_koef * 0.15 * this.aim_koef, this.map_center_y + this.map_scale * this.scale_koef * 0.15 * this.aim_koef)
+            .lineTo(this.map_center_x + this.map_scale * this.scale_koef * 0.15 * this.aim_koef, this.map_center_y - this.map_scale * this.scale_koef * 0.15 * this.aim_koef)
+        this.aim.regY = this.map_scale * this.scale_koef * this.aim_koef * Math.cos(this.angle / 180 * Math.PI);
+        this.aim.regX = this.map_scale * this.scale_koef * this.aim_koef * Math.sin(this.angle / 180 * Math.PI);
     }
     update(player_data) {
         this.drone.y = player_data.current_pos[0] * this.map_scale;
@@ -183,8 +209,7 @@ class Drone {
         this.y = player_data.current_pos[0];
         this.x = player_data.current_pos[1];
 
-        this.drone.angle = player_data.current_pos[3] * 180 / 3.14;
-        console.log(this.drone.angle)
+        this.angle = player_data.current_pos[3] * 180 / Math.PI;
         this.is_bloking = player_data.is_bloking;
         this.is_cargo = player_data.is_cargo;
         this.is_shooting = player_data.is_shooting;
@@ -249,8 +274,8 @@ function add_keyboard(map) {
     window.onkeydown = function (e) {
         switch (e.code) {
             case 'KeyW':
-                main_drone.y -= 1;
-                main_drone.animation();
+                main_drone.drone.y -= 0.1 * map.scale * Math.cos(main_drone.angle / 180 * Math.PI);
+                main_drone.drone.x -= 0.1 * map.scale * Math.sin(main_drone.angle / 180 * Math.PI);
                 map.draw_all();
                 break;
             case 'KeyS':
@@ -258,12 +283,27 @@ function add_keyboard(map) {
                 map.draw_all();
                 break;
             case 'KeyA':
-                main_drone.x -= 1;
-                main_drone.animation();
+                main_drone.drone.x -= 0.1 * map.scale;
                 map.draw_all();
                 break;
             case 'KeyD':
                 main_drone.drone.x += 0.1 * map.scale;
+                map.draw_all();
+                break;
+            case 'KeyQ':
+                main_drone.angle += 2;
+                map.draw_all();
+                break;
+            case 'KeyE':
+                main_drone.angle -= 2;
+                map.draw_all();
+                break;
+            case 'KeyR':
+                main_drone.is_bloking = true;
+                map.draw_all();
+                break;
+            case 'KeyB':
+                main_drone.is_shooting = true;
                 map.draw_all();
                 break;
         }

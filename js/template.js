@@ -2,10 +2,9 @@ function start() {
     var canvas = document.getElementById('map');
     var stage = new createjs.Stage(canvas);
     add_ticker(6000, stage);
-    var map = new Map('blue', 0, stage, canvas.width / 2, 550);
+    var map = new Map('red', 3, stage, canvas.width / 2, 550);
 
     map.draw_all();
-
     add_keyboard(map);
     getUserInfo(map);
     map.draw_all();
