@@ -2,17 +2,17 @@ function start() {
     var canvas = document.getElementById('map');
     var stage = new createjs.Stage(canvas);
     add_ticker(6000, stage);
-    var map = new Map(4, stage, canvas.width / 2, 100);
+    var map = new Map('blue', 0, stage, canvas.width / 2, 550);
 
     map.draw_all();
 
-    add_keyboard(map.drones[map.main_drone_number], map);
-    getMapInfo(map);
+    add_keyboard(map);
     getUserInfo(map);
-    setInterval(function () {
-        getUserInfo(map);
-        map.draw_objects();
-    }, 1000);
+    map.draw_all();
+    // setInterval(function () {d
+    //     getUserInfo(map);
+    //     map.draw_objects();
+    // }, 1000);
 }
 
 //10.10.0.162:31222/user?user=all
@@ -25,43 +25,13 @@ function getUserInfo(map) {
                 status: response.status
             })
         ).then(res => {
-            for (let i = 0; i < 4; i++) {
-                map.drones[i].drone.x = res.data.team_info.Blue.players[i].current_pos[0] * map.scale;
-                map.drones[i].drone.y = res.data.team_info.Blue.players[i].current_pos[1] * map.scale;
-                map.drones[i+4].drone.x = res.data.team_info.Red.players[i].current_pos[0] * map.scale;
-                map.drones[i+4].drone.y = res.data.team_info.Red.players[i].current_pos[1] * map.scale;
-            }
-            map.draw_map();
-            map.draw_objects();
+            map.parse_json(res.data);
+
         }).catch(function (e) {
             console.log(e)
         }));
 }
 
-function getMapInfo(map) {
-    var userDataUrl = "http://127.0.0.1:5555/?target=get&type_command=player&command=visualization&param=0";
-    fetch(userDataUrl).then(response =>
-        response.json().then(data => ({
-                data: data,
-                status: response.status
-            })
-        ).then(res => {
-            for (let i = 0; i < 4; i++) {
-                map.factories[i].place.y = map.factories[i].bitmap.y = res.data.polygon_info[i].current_pos[0] * map.scale;
-                map.factories[i].place.x = map.factories[i].bitmap.x = res.data.polygon_info[i].current_pos[1] * map.scale;
-                map.starts[i].place.y = res.data.polygon_info[i+4].current_pos[0] * map.scale;
-                map.starts[i].place.x = res.data.polygon_info[i+4].current_pos[1] * map.scale;
-                map.starts[i+4].place.y = res.data.polygon_info[i+10].current_pos[0] * map.scale;
-                map.starts[i+4].place.x = res.data.polygon_info[i+10].current_pos[1] * map.scale;
-            }
-            map.chargers[0].place.y = res.data.polygon_info[8].current_pos[0] * map.scale;
-            map.chargers[0].place.x = res.data.polygon_info[8].current_pos[1] * map.scale;
-            map.chargers[1].place.y = res.data.polygon_info[9].current_pos[0] * map.scale;
-            map.chargers[1].place.x = res.data.polygon_info[9].current_pos[1] * map.scale;
-        }).catch(function (e) {
-            console.log(e)
-        }));
-}
 // function getUserInfo(map) {
 //     var userDataUrl = "http://127.0.0.1:5555/?target=get&type_command=player&command=visualization&param=0";
 //     fetch(userDataUrl).then(response =>
