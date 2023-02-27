@@ -8,10 +8,10 @@ function start() {
     add_keyboard(map);
     getUserInfo(map);
     map.draw_all();
-    // setInterval(function () {d
+    // setInterval(function () {
     //     getUserInfo(map);
-    //     map.draw_objects();
-    // }, 1000);
+    //     map.draw_all();
+    // }, 200);
 }
 
 //10.10.0.162:31222/user?user=all

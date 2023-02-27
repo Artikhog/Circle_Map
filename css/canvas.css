@@ -18,3 +18,69 @@
     top: 10px;
     left: 10px;
 }
+#blue_drone {
+    width: 0px;
+    height: 0px;
+}
+
+#red_drone {
+    width: 0px;
+    height: 0px;
+}
+
+#blue_car {
+    width: 0px;
+    height: 0px;
+}
+
+#red_car {
+    width: 0px;
+    height: 0px;
+}
+
+#boom {
+    width: 0px;
+    height: 0px;
+}
+
+#jdun {
+    width: 0px;
+    height: 0px;
+}
+
+#vertiport {
+    width: 0px;
+    height: 0px;
+}
+#blue_start1 {
+    width: 0px;
+    height: 0px;
+}
+#blue_start2 {
+    width: 0px;
+    height: 0px;
+}
+#blue_start3 {
+    width: 0px;
+    height: 0px;
+}
+#blue_start4 {
+    width: 0px;
+    height: 0px;
+}
+#red_start1 {
+    width: 0px;
+    height: 0px;
+}
+#red_start2 {
+    width: 0px;
+    height: 0px;
+}
+#red_start3 {
+    width: 0px;
+    height: 0px;
+}
+#red_start4 {
+    width: 0px;
+    height: 0px;
+}
