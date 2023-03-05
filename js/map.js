@@ -1,40 +1,43 @@
 class Map {
-    constructor(main_drone_color, main_drone_number, stage, center, size, locus_x = 5.5, locus_y = 5.5, meter_size = 11, angle = 0) {
-        this.main_drone_color = main_drone_color;
-        this.main_drone_number = main_drone_number;
-        this.stage = stage;
-        this.center = center;
-        this.size = size;
-        this.meter_size = meter_size;
-        this.scale = size / meter_size;
+    constructor(mdc, mdn, stage, canvas_center, size, meter_size = 11, locus_x = 5.5, locus_y = 5.5) {
+        this.main_drone_color = mdc; //цвет команды игрока
+        this.main_drone_number = mdn; //номер игрока в массиве
+        this.stage = stage; // объект сцены, к ней добавляются все остальные элементы
+        this.canvas_center = canvas_center; // центр канваса
+        this.size = size; // размер карты в пикселях
+        this.meter_size = meter_size; // размер реального полигона в метрах
+        this.scale = size / meter_size; // размер 1 клетки карты в пикселях
         this.locus_x = locus_x;
         this.locus_y = locus_y;
-        this.angle = angle;
+        this.angle = 0;
         this.map_container = new createjs.Container();
-        this.map_container.x = center;
-        this.map_container.y = center;
+        this.map_container.x = canvas_center;
+        this.map_container.y = canvas_center;
         this.stage.addChild(this.map_container);
-        this.blue_starts = [];
-        this.blue_starts.length = 4;
+        this.red_team = [];
+        this.red_team.length = 4;
         this.red_starts = [];
         this.red_starts.length = 4;
-        this.blue_drones = []
-        this.blue_drones.length = 4;
-        this.red_drones = []
-        this.red_drones.length = 4;
-        this.chargers = []
+        this.blue_team = [];
+        this.blue_team.length = 4;
+        this.blue_starts = [];
+        this.blue_starts.length = 4;
+        this.chargers = [];
         this.chargers.length = 2;
         this.factories = [];
         this.factories.length = 4;
         this.add_objects();
     }
-    draw_all() {
+    draw_all_objects() {
+        this.stage.removeAllChildren();
         this.map_container.removeAllChildren();
+        this.stage.addChild(this.map_container);
         this.draw_map();
         this.draw_polygon_objects();
-        this.update();
-        this.rotate();
-        this.draw_drones();
+        this.draw_players();
+        this.update_coordinates();
+
+        this.add_arrow();
     }
     draw_map() {
         var background = new createjs.Shape();
@@ -53,65 +56,75 @@ class Map {
         }
         this.add_mask();
     }
-    draw_polygon_objects() {
-        this.chargers[0].draw();
-        this.chargers[1].draw();
-        this.map_container.addChild(this.chargers[0].bitmap);
-        this.map_container.addChild(this.chargers[1].bitmap);
-
-        for (let i = 0; i < 4; i++) {
-            this.factories[i].draw();
-            this.blue_starts[i].draw();
-            this.red_starts[i].draw();
-            this.map_container.addChild(this.factories[i].place, this.factories[i].bitmap, this.factories[i].cargo_bitmap);
-            this.map_container.addChild(this.blue_starts[i].bitmap);
-            this.map_container.addChild(this.red_starts[i].bitmap);
-        }
-    }
-    draw_drones() {
-        for (let i = 0; i < 4; i++) {
-            this.blue_drones[i].draw();
-            this.red_drones[i].draw();
-            this.map_container.addChild(this.blue_drones[i].drone, this.blue_drones[i].bitmap, this.blue_drones[i].cargo_bitmap);
-            this.map_container.addChild(this.red_drones[i].drone, this.red_drones[i].bitmap, this.red_drones[i].cargo_bitmap);
-        }
-    }
     add_objects() {
         for (let i = 0; i < 4; i++) {
-            this.factories[i] = new Factory_Place(this.locus_x, this.locus_y, 'grey', this.scale, 'vertiport', 1);
+            this.red_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `red_start${1+i}`, this.scale, -90);
+            this.blue_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `blue_start${1+i}`, this.scale, 90);
+            this.factories[i] = new Factory_Place(this.locus_x, this.locus_y, 'factory', this.scale, 'grey', 90);
         }
-        this.blue_drones[0] = new Drone(this.locus_x, this.locus_y, 'blue_drone', this.scale);
-        this.blue_drones[1] = new Drone(this.locus_x, this.locus_y, 'blue_car', this.scale);
-        this.blue_drones[2] = new Drone(this.locus_x, this.locus_y, 'blue_car', this.scale);
-        this.blue_drones[3] = new Drone(this.locus_x, this.locus_y, 'blue_drone', this.scale);
-
-        this.red_drones[0] = new Drone(this.locus_x, this.locus_y, 'red_drone', this.scale);
-        this.red_drones[1] = new Drone(this.locus_x, this.locus_y, 'red_car', this.scale);
-        this.red_drones[2] = new Drone(this.locus_x, this.locus_y, 'red_car', this.scale);
-        this.red_drones[3] = new Drone(this.locus_x, this.locus_y, 'red_drone', this.scale);
+        this.chargers[0] = new Start_Charger_Place(this.locus_x, this.locus_y, 'charger', this.scale, 90);
+        this.chargers[1] = new Start_Charger_Place(this.locus_x, this.locus_y, 'charger', this.scale, -90);
 
 
-        this.blue_starts[0] = new Start_Place(this.locus_x, this.locus_y, this.scale, 'blue_start1', 180);
-        this.blue_starts[1] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'blue_start2', 180);
-        this.blue_starts[2] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'blue_start3', 180);
-        this.blue_starts[3] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'blue_start4', 180);
-        this.red_starts[0] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'red_start1');
-        this.red_starts[1] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'red_start2');
-        this.red_starts[2] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'red_start3');
-        this.red_starts[3] = new Start_Place(this.locus_x, this.locus_y,  this.scale, 'red_start4');
+        this.red_team[0] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
+        this.red_team[1] = new Drone(this.locus_x, this.locus_y, 'red_car', 'blocked_car', this.scale);
+        this.red_team[2] = new Drone(this.locus_x, this.locus_y, 'red_car', 'blocked_car', this.scale);
+        this.red_team[3] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
 
+        this.blue_team[0] = new Drone(this.locus_x, this.locus_y, 'blue_drone', 'blocked_drone', this.scale);
+        this.blue_team[1] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
+        this.blue_team[2] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
+        this.blue_team[3] = new Drone(this.locus_x, this.locus_y, 'blue_drone', 'blocked_drone', this.scale);
+    }
+    draw_polygon_objects() {
+        for (let i = 0; i < 4; i++) {
+            this.red_starts[i].draw();
+            this.blue_starts[i].draw();
+            this.factories[i].draw();
+            this.chargers[Math.round(i/4)].draw();
+            this.map_container.addChild(this.red_starts[i].object_bitmap, this.blue_starts[i].object_bitmap, this.factories[i].place, this.factories[i].object_bitmap, this.chargers[Math.round(i/4)].object_bitmap);
+            this.map_container.addChild(this.red_starts[i].cargo_bitmap, this.blue_starts[i].cargo_bitmap);
+        }
+    }
+    draw_players() {
+        for (let i = 0; i < 4; i++) {
+            this.red_team[i].draw();
+            this.blue_team[i].draw();
+            this.map_container.addChild(this.red_team[i].object_bitmap, this.blue_team[i].object_bitmap);
+            this.map_container.addChild(this.red_team[i].blocked_drone_bitmap, this.blue_team[i].blocked_drone_bitmap);
+            this.map_container.addChild(this.red_team[i].cargo_bitmap, this.blue_team[i].cargo_bitmap);
+        }
+    }
+    update_coordinates() {
+        switch (this.main_drone_color) {
+            case 'red':
+                this.angle = - this.red_team[this.main_drone_number].angle
+                createjs.Tween.get(this.map_container).to({
+                    rotation: this.angle,
+                    regX: (this.red_team[this.main_drone_number].map_center_x + this.red_team[this.main_drone_number].x) * this.scale,
+                    regY: (this.red_team[this.main_drone_number].map_center_y + this.red_team[this.main_drone_number].y) * this.scale
+                }, 200);
+                break;
+            case 'blue':
+                this.angle = - this.blue_team[this.main_drone_number].angle
+                createjs.Tween.get(this.map_container).to({
+                    rotation: this.angle,
+                    regX: (this.blue_team[this.main_drone_number].map_center_x + this.blue_team[this.main_drone_number].x) * this.scale,
+                    regY: (this.blue_team[this.main_drone_number].map_center_y + this.blue_team[this.main_drone_number].y) * this.scale
+                }, 200);
+                break;
 
-        this.chargers[0] = new Charger_Place(this.locus_x, this.locus_y,'none', this.scale, 'charger');
-        this.chargers[1] = new Charger_Place(this.locus_x, this.locus_y, 'none', this.scale, 'charger');
+        }
     }
     parse_json(data) {
         for (let i = 0; i < 4; i++) {
-            this.factories[i].update(data.polygon_info[i]);
-            this.blue_starts[i].update(data.polygon_info[i + 4]);
-            this.red_starts[i].update(data.polygon_info[i + 10]);
+            this.blue_starts[i].get_data(data.polygon_info[i + 4]);
+            this.red_starts[i].get_data(data.polygon_info[i + 10]);
+            this.factories[i].get_data(data.polygon_info[i])
         }
-        this.chargers[0].update(data.polygon_info[8]);
-        this.chargers[1].update(data.polygon_info[9]);
+
+        this.chargers[0].get_data(data.polygon_info[8]);
+        this.chargers[1].get_data(data.polygon_info[9]);
 
         const team_value = Object.values(data.team_info)
         let team_red_value = Object.values(team_value[0])
@@ -120,122 +133,138 @@ class Map {
         let blue_players = Object.values(team_blue_value[2])
 
         for (let i = 0; i < 4; i++) {
-            this.blue_drones[i].update(blue_players[i]);
-            this.red_drones[i].update(red_players[i]);
+            this.blue_team[i].get_data(blue_players[i]);
+            this.red_team[i].get_data(red_players[i]);
         }
     }
-    rotate() {
-        createjs.Tween.get(this.map_container).to({
-            rotation: this.angle
-        }, 200);
-    }
-    update() {
+    add_arrow() {
+        var arrow = new createjs.Shape();
+        arrow.graphics.beginFill('yellow')
+            .drawCircle(this.canvas_center, this.canvas_center, 8);
+
         switch (this.main_drone_color) {
-            case 'blue':
-                this.map_container.regX = this.blue_drones[this.main_drone_number].map_center_x + this.blue_drones[this.main_drone_number].drone.x;
-                this.map_container.regY = this.blue_drones[this.main_drone_number].map_center_y + this.blue_drones[this.main_drone_number].drone.y;
-                this.angle = this.blue_drones[this.main_drone_number].angle;
-                break;
             case 'red':
-                this.map_container.regX = this.red_drones[this.main_drone_number].map_center_x + this.red_drones[this.main_drone_number].drone.x;
-                this.map_container.regY = this.red_drones[this.main_drone_number].map_center_y + this.red_drones[this.main_drone_number].drone.y;
-                this.angle = this.red_drones[this.main_drone_number].angle;
+                var dif_x = this.red_team[this.main_drone_number].x - this.red_starts[this.main_drone_number].x;
+                var dif_y = this.red_team[this.main_drone_number].y - this.red_starts[this.main_drone_number].y;
+                var angle = Math.atan2(dif_x, dif_y) + this.red_team[this.main_drone_number].angle / 180 * Math.PI;
+                break;
+            case 'blue':
+                var dif_x = this.blue_team[this.main_drone_number].x - this.blue_starts[this.main_drone_number].x;
+                var dif_y = this.blue_team[this.main_drone_number].y - this.blue_starts[this.main_drone_number].y;
+                var angle = Math.atan2(dif_x, dif_y) + this.blue_team[this.main_drone_number].angle / 180 * Math.PI;
                 break;
         }
+
+
+        // createjs.Tween.get(arrow).to({
+        //     regX: this.canvas_center * Math.sin(angle),
+        //     regY: this.canvas_center * Math.cos(angle)
+        // }, 500);
+        arrow.regY = this.canvas_center * Math.cos(angle)
+        arrow.regX = this.canvas_center * Math.sin(angle)
+        this.stage.addChild(arrow);
     }
     add_mask(color = 'grey') {
         var mask = new createjs.Shape();
         mask.graphics.beginFill(color)
             .moveTo(0 , 0)
-            .lineTo(0, this.center)
-            .arc(this.center, this.center, this.center, 3.14, -1.57, false)
+            .lineTo(0, this.canvas_center)
+            .arc(this.canvas_center, this.canvas_center, this.canvas_center, 3.14, -1.57, false)
             .lineTo(0 , 0)
             .endFill();
         mask.graphics.beginFill(color)
-            .moveTo(0, this.center * 2)
-            .lineTo(this.center, this.center * 2)
-            .arc(this.center, this.center, this.center, 1.57, 3.14, false)
+            .moveTo(0, this.canvas_center * 2)
+            .lineTo(this.canvas_center, this.canvas_center * 2)
+            .arc(this.canvas_center, this.canvas_center, this.canvas_center, 1.57, 3.14, false)
             .endFill();
         mask.graphics.beginFill(color)
-            .moveTo(this.center * 2, this.center * 2)
-            .lineTo(this.center * 2, this.center)
-            .arc(this.center, this.center, this.center, 0, 1.57, false)
+            .moveTo(this.canvas_center * 2, this.canvas_center * 2)
+            .lineTo(this.canvas_center * 2, this.canvas_center)
+            .arc(this.canvas_center, this.canvas_center, this.canvas_center, 0, 1.57, false)
             .endFill();
         mask.graphics.beginFill(color)
-            .moveTo(this.center * 2, 0)
-            .lineTo(this.center, 0)
-            .arc(this.center, this.center, this.center, -1.57, 0, false)
+            .moveTo(this.canvas_center * 2, 0)
+            .lineTo(this.canvas_center, 0)
+            .arc(this.canvas_center, this.canvas_center, this.canvas_center, -1.57, 0, false)
             .endFill();
         mask.alpha = 0.5;
         this.stage.addChild(mask);
     }
 }
 
-class Drone {
-    constructor(locus_x, locus_y, type, scale, scale_koef = 0.2) {
-        this.x = locus_y * scale;
-        this.y = locus_x * scale;
-        this.map_center_x = locus_x * scale;
-        this.map_center_y = locus_y * scale;
-        this.type = type;
-        this.map_scale = scale;
-        this.scale_koef = scale_koef;
+
+class Map_Object {
+    constructor(locus_x, locus_y, type, map_scale, scale_koef) {
+        this.x = 0;
+        this.y = 0;
         this.angle = 0;
-        this.drone = new createjs.Shape();
-        this.bitmap = new createjs.Bitmap(document.getElementById(type));
-        this.cargo_bitmap = new createjs.Bitmap(document.getElementById('box'));
-        this.cargo_bitmap.scaleX = 0;
-        this.cargo_bitmap.scaleY = 0;
-        this.is_bloking = false;
+        this.map_center_x = locus_x;
+        this.map_center_y = locus_y;
+        this.type = type;
+
+        this.map_scale = map_scale;
+        this.scale_koef = scale_koef;
+        this.object_bitmap = get_scaled_bitmap(type, map_scale, scale_koef);
+
+    }
+    draw() {
+        createjs.Tween.get(this.object_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
+        // this.object_bitmap.x = (this.map_center_x + this.x) * this.map_scale;
+        // this.object_bitmap.y = (this.map_center_y + this.y) * this.map_scale;
+        // this.object_bitmap.rotation = this.angle;
+    }
+}
+
+
+class Drone extends Map_Object {
+    constructor(locus_x, locus_y, type, blocked_type, map_scale, scale_koef = 0.7) {
+        super(locus_x, locus_y, type, map_scale, scale_koef);
+        this.is_blocking = false;
         this.is_cargo = false;
         this.is_connected = false;
         this.is_shooting = false;
+
+        this.blocked_drone_bitmap = get_scaled_bitmap(blocked_type, map_scale, scale_koef, 0);
+        this.cargo_bitmap = get_scaled_bitmap('box', map_scale, scale_koef, 1000, 0.25, 0.25);
+        this.cargo_bitmap_height = document.getElementById('box').naturalHeight;
     }
     draw() {
-        this.drone.graphics.beginStroke('purple')
-            .arc(this.map_center_x, this.map_center_y, this.map_scale * 0.75, 0, 2*Math.PI);
-        if (this.is_bloking) {
-            this.bitmap = new createjs.Bitmap(document.getElementById("jdun"));
-            this.bitmap.x = this.map_center_x + this.drone.x;
-            this.bitmap.y = this.map_center_y + this.drone.y;
-            // this.bitmap.regX = 50 * this.scale_koef * 25;
-            // this.bitmap.regY = 50 * this.scale_koef * 25;
-            this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koef / 90;
-            this.bitmap.rotation = - this.angle;
+        if (this.is_blocking) {this.blocked_drone_bitmap.alpha = 1000;}
+        else {this.blocked_drone_bitmap.alpha = 0;}
+        if (this.is_cargo) {createjs.Tween.get(this.cargo_bitmap).to({
+            scaleX: this.map_scale * this.scale_koef * 0.75 / this.cargo_bitmap_height,
+            scaleY: this.map_scale * this.scale_koef * 0.75 / this.cargo_bitmap_height,
+        }, 200);}
+        else {createjs.Tween.get(this.cargo_bitmap).to({
+            scaleX: 0,
+            scaleY: 0,
+        }, 200);}
 
-        }
-        else {
-            if (this.is_cargo) {
-                this.cargo_bitmap.x = this.map_center_x + this.drone.x;
-                this.cargo_bitmap.y = this.map_center_y + this.drone.y;
-                createjs.Tween.get(this.cargo_bitmap).to({
-                    scaleX: this.map_scale * this.scale_koef / 960,
-                    scaleY: this.map_scale * this.scale_koef / 960
-                }, 2000);
-                this.cargo_bitmap.rotation = - this.angle;
-            } else {
-                createjs.Tween.get(this.cargo_bitmap).to({
-                    scaleX: 0,
-                    scaleY: 0
-                }, 2000);
-            }
-            this.bitmap = new createjs.Bitmap(document.getElementById(this.type));
-            this.bitmap.x = this.map_center_x + this.drone.x;
-            this.bitmap.y = this.map_center_y + this.drone.y;
-            this.bitmap.regX = 55 * this.scale_koef * 2.5;
-            this.bitmap.regY = 55 * this.scale_koef * 2.5;
-            this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koef * 0.8 / 15;
-            this.bitmap.rotation = - this.angle;
-        }
+        createjs.Tween.get(this.object_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
+        createjs.Tween.get(this.blocked_drone_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
+        createjs.Tween.get(this.cargo_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
     }
+    get_data(player_data) {
+        super.x = player_data.current_pos[0];
+        super.y = player_data.current_pos[1];
+        super.angle = player_data.current_pos[3] / Math.PI * 180;
 
-    update(player_data) {
-        this.drone.y = player_data.current_pos[0] * this.map_scale;
-        this.drone.x = player_data.current_pos[1] * this.map_scale;
-        this.y = player_data.current_pos[0];
-        this.x = player_data.current_pos[1];
-
-        this.angle = player_data.current_pos[3] * 180 / Math.PI;
         this.is_bloking = player_data.is_bloking;
         this.is_cargo = player_data.is_cargo;
         this.is_shooting = player_data.is_shooting;
@@ -244,109 +273,86 @@ class Drone {
 
 }
 
-class Factory_Place{
-    constructor(locus_x, locus_y, color, scale, path, scale_koef = 0.8) {
-        this.map_center_x = locus_x * scale;
-        this.map_center_y = locus_y * scale;
-        this.color = color;
-        this.map_scale = scale;
-        this.scale_koef = scale_koef;
+class Start_Charger_Place extends Map_Object{
+    constructor(locus_x, locus_y, type, map_scale, angle = 0, scale_koef = 0.8,) {
+        super(locus_x, locus_y, type, map_scale, scale_koef);
+        super.angle = angle;
+    }
+    get_data(place_data) {
+        this.x = place_data.current_pos[0];
+        this.y = place_data.current_pos[1];
+    }
+}
+
+class Factory_Place extends Map_Object{
+    constructor(locus_x, locus_y, type, map_scale, color = 'grey', angle = 0, scale_koef = 1, place_koef = 1.2) {
+        super(locus_x, locus_y, type, map_scale, scale_koef);
+        super.angle = angle;
+        this.place_koef = place_koef;
         this.place = new createjs.Shape();
-        this.bitmap = new createjs.Bitmap(document.getElementById(path));
-        this.cargo_bitmap = new createjs.Bitmap(document.getElementById('box'));
-        this.cargo_bitmap.scaleX = 0;
-        this.cargo_bitmap.scaleY = 0;
         this.is_cargo = false;
+        this.color = color;
+        this.place.x = (this.map_center_x + this.x) * this.map_scale;
+        this.place.y = (this.map_center_y + this.y) * this.map_scale;
+
+        this.cargo_bitmap = get_scaled_bitmap('box', map_scale, scale_koef);
+        this.cargo_bitmap_height = document.getElementById('box').naturalHeight;
+
     }
     draw() {
         this.place.graphics.beginFill(this.color)
-            .drawRect(this.map_center_x, this.map_center_y, this.map_scale * this.scale_koef, this.map_scale * this.scale_koef);
-        this.place.regX = this.place.regY = this.map_scale * this.scale_koef * 0.5
-        if (this.is_cargo) {
-            this.cargo_bitmap.x = this.bitmap.x;
-            this.cargo_bitmap.y = this.bitmap.y;
-            this.cargo_bitmap.regX = 1920 * this.scale_koef;
-            this.cargo_bitmap.regX = 1920 * this.scale_koef;
-            createjs.Tween.get(this.cargo_bitmap).to({
-                scaleX: this.map_scale * this.scale_koef / 960 / 4,
-                scaleY: this.map_scale * this.scale_koef / 960 / 4
-
-            }, 2000);
-        } else {
-            this.color = 'grey';
-            createjs.Tween.get(this.cargo_bitmap).to({
-                scaleX: 0,
-                scaleY: 0
-            }, 2000);
-        }
+            .drawRect(0, 0, this.map_scale * this.scale_koef * this.place_koef, this.map_scale * this.scale_koef * this.place_koef);
+        this.place.regX = this.place.regY = this.map_scale * this.scale_koef * this.place_koef * 0.5;
+        createjs.Tween.get(this.object_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
+        createjs.Tween.get(this.place).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
+        createjs.Tween.get(this.cargo_bitmap).to({
+            x: (this.map_center_x + this.x) * this.map_scale,
+            y: (this.map_center_y + this.y) * this.map_scale,
+            rotation: this.angle
+        }, 200);
     }
-    update(place_data) {
-        this.place.y = place_data.current_pos[0] * this.map_scale;
-        this.place.x = place_data.current_pos[1] * this.map_scale;
-
-        this.bitmap.x = this.map_center_x + this.place.x + this.map_scale * this.scale_koef * 0.1;
-        this.bitmap.y = this.map_center_y + this.place.y + this.map_scale * this.scale_koef * 0.1;
-        this.bitmap.regX = this.bitmap.regY = 110 * this.scale_koef;
-        this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koef * 0.8 / 176;
-
+    get_data(place_data) {
+        this.x = place_data.current_pos[0];
+        this.y = place_data.current_pos[1];
 
         this.is_cargo = place_data.role_data.is_cargo;
         if (place_data.role_data.current_cargo_color[0] > 0) {
             this.color = 'blue';
+            // this.cargo_bitmap = get_scaled_bitmap('blue_box', this.map_scale, this.scale_koef);
+            // this.cargo_bitmap_height = document.getElementById('blue_box').naturalHeight;
         }
         else if (place_data.role_data.current_cargo_color[1] > 0) {
             this.color = 'green';
+            // this.cargo_bitmap = get_scaled_bitmap('green_box', this.map_scale, this.scale_koef);
+            // this.cargo_bitmap_height = document.getElementById('green_box').naturalHeight;
         }
         else if (place_data.role_data.current_cargo_color[2] > 0) {
             this.color = 'red';
+            // this.cargo_bitmap = get_scaled_bitmap('red_box', this.map_scale, this.scale_koef);
+            // this.cargo_bitmap_height = document.getElementById('red_box').naturalHeight;
         }
     }
 }
 
+function get_scaled_bitmap(type, map_scale, scale_koef, alpha = 1000, regX_scale = 1, regY_scale = 1) {
+    var bitmap = new createjs.Bitmap(document.getElementById(type));
+    var natural_height = document.getElementById(type).naturalHeight;
+    var natural_width = document.getElementById(type).naturalWidth;
 
-class Charger_Place{
-    constructor(locus_x, locus_y, color, scale, path, scale_koeff = 0.8) {
-        this.map_center_x = locus_x * scale;
-        this.map_center_y = locus_y * scale;
-        this.map_scale = scale;
-        this.scale_koeff = scale_koeff;
-        this.bitmap = new createjs.Bitmap(document.getElementById(path));
-        this.bitmap.x = this.map_center_x
-        this.bitmap.y = this.map_center_y
-    }
-    draw() {
-        this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koeff / 80;
-        this.bitmap.regX = this.bitmap.regY = 50 * this.scale_koeff;
-    }
-    update(place_data) {
-        this.bitmap.y = this.map_center_y + place_data.current_pos[0] * this.map_scale;
-        this.bitmap.x = this.map_center_x + place_data.current_pos[1] * this.map_scale;
-    }
-}
-
-class Start_Place {
-    constructor(locus_x, locus_y,  scale, path, angle = 0, scale_koeff = 0.8) {
-        this.map_center_x = locus_x * scale;
-        this.map_center_y = locus_y * scale;
-        this.map_scale = scale;
-        this.angle = angle;
-        this.scale_koeff = scale_koeff;
-        this.bitmap = new createjs.Bitmap(document.getElementById(path));
-        this.bitmap.x = this.map_center_x;
-        this.bitmap.y = this.map_center_y;
-        this.bitmap.regX = this.bitmap.regY = 50 * this.scale_koeff;
-        this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koeff / 80;
-        this.bitmap.rotation = this.angle
-    }
-    draw() {
-        // this.bitmap.regX = this.bitmap.regY = 50 * this.scale_koeff;
-        // this.bitmap.scaleX = this.bitmap.scaleY = this.map_scale * this.scale_koeff / 80;
-        // this.bitmap.rotation = this.angle
-    }
-    update(place_data) {
-        this.bitmap.y = this.map_center_x + place_data.current_pos[0] * this.map_scale;
-        this.bitmap.x = this.map_center_y + place_data.current_pos[1] * this.map_scale;
-    }
+    bitmap.regX = natural_width / 2 * regX_scale;
+    bitmap.regY = natural_height / 2 * regY_scale;
+    bitmap.scaleX = map_scale * scale_koef / natural_width;
+    bitmap.scaleY = map_scale * scale_koef / natural_height;
+    bitmap.alpha = alpha;
+    return bitmap;
 }
 
 function add_ticker(framerate = 3000, stage) {
@@ -355,49 +361,59 @@ function add_ticker(framerate = 3000, stage) {
     createjs.Ticker.addEventListener("tick", stage);
 }
 
+
 function add_keyboard(map) {
+    var main_drone;
     switch (map.main_drone_color) {
         case 'blue':
-            main_drone = map.blue_drones[map.main_drone_number];
+            main_drone = map.blue_team[map.main_drone_number];
+            break;
         case 'red':
-            main_drone = map.red_drones[map.main_drone_number];
+            main_drone = map.red_team[map.main_drone_number];
+            break;
     }
     window.onkeydown = function (e) {
         switch (e.code) {
             case 'KeyW':
-                main_drone.drone.y -= 0.1 * map.scale * Math.cos(main_drone.angle / 180 * Math.PI);
-                main_drone.drone.x -= 0.1 * map.scale * Math.sin(main_drone.angle / 180 * Math.PI);
-                map.draw_all();
+                main_drone.y -= 0.3 * Math.cos(main_drone.angle / 180 * Math.PI);
+                main_drone.x += 0.3 * Math.sin(main_drone.angle / 180 * Math.PI);
+                map.draw_all_objects();
                 break;
             case 'KeyS':
-                main_drone.drone.y += 0.1 * map.scale;
-                map.draw_all();
+                main_drone.y += 0.1;
+                map.draw_all_objects();
                 break;
             case 'KeyA':
-                main_drone.drone.x -= 0.1 * map.scale;
-                map.draw_all();
+                main_drone.x -= 0.1;
+                map.draw_all_objects();
                 break;
             case 'KeyD':
-                main_drone.drone.x += 0.1 * map.scale;
-                map.draw_all();
+                main_drone.x += 0.1;
+                map.draw_all_objects();
                 break;
             case 'KeyQ':
-                main_drone.angle += 2;
-                map.draw_all();
+                main_drone.angle -= 5;
+                map.draw_all_objects();
                 break;
             case 'KeyE':
-                main_drone.angle -= 2;
-                map.draw_all();
+                main_drone.angle += 5;
+                map.draw_all_objects();
                 break;
-            case 'KeyR':
+            case 'KeyT':
+                main_drone.is_blocking = true;
+                map.draw_all_objects();
+                break;
+            case 'KeyY':
+                main_drone.is_blocking = false;
+                map.draw_all_objects();
+                break;
+            case 'KeyG':
                 main_drone.is_cargo = true;
-                map.factories[0].is_cargo = false;
-                map.draw_all();
+                map.draw_all_objects();
                 break;
-            case 'KeyB':
+            case 'KeyH':
                 main_drone.is_cargo = false;
-                map.factories[3].is_cargo = true;
-                map.draw_all();
+                map.draw_all_objects();
                 break;
         }
     }}

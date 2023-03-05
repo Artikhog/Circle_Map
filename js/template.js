@@ -1,17 +1,17 @@
 function start() {
     var canvas = document.getElementById('map');
     var stage = new createjs.Stage(canvas);
-    add_ticker(6000, stage);
-    var map = new Map('red', 0, stage, canvas.width / 2, 550*1.3);
-
-    map.draw_all();
+    add_ticker(60, stage);
+    var map = new Map('blue', 1, stage, canvas.width/2, 550);
+    add_keyboard(map);
+    map.draw_all_objects();
     add_keyboard(map);
     getUserInfo(map);
-    map.draw_all();
+    map.draw_all_objects();
     // setInterval(function () {
-    //     getUserInfo(map);
-    //     map.draw_all();
-    // }, 200);
+    //     map.red_team[0].x += 0.5;
+    //     map.draw_all_objects();
+    // }, 1000);
 }
 
 //10.10.0.162:31222/user?user=all
