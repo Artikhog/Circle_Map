@@ -7,13 +7,12 @@ class Map {
         this.size = size; // размер карты в пикселях
         this.meter_size = meter_size; // размер реального полигона в метрах
         this.scale = size / meter_size; // размер 1 клетки карты в пикселях
-        this.locus_x = locus_x;
+        this.locus_x = locus_x;  //координаты локуса
         this.locus_y = locus_y;
-        this.angle = 0;
-        this.map_container = new createjs.Container();
-        this.map_container.x = canvas_center;
+        this.angle = 0;  // угол поворота карты
+        this.map_container = new createjs.Container(); //контейнер для объектов карты (поворачивается вместе с игроком)
+        this.map_container.x = canvas_center; // переносим координаты контейнера в центр канваса, чтобы контейнер крутился вокруг этой точки
         this.map_container.y = canvas_center;
-        this.stage.addChild(this.map_container);
         this.red_team = [];
         this.red_team.length = 4;
         this.red_starts = [];
@@ -26,7 +25,7 @@ class Map {
         this.chargers.length = 2;
         this.factories = [];
         this.factories.length = 4;
-        this.add_objects();
+        this.add_objects(); //добавляем обьекты в массивы
     }
     draw_all_objects() {
         this.stage.removeAllChildren();
@@ -58,9 +57,9 @@ class Map {
     }
     add_objects() {
         for (let i = 0; i < 4; i++) {
-            this.red_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `red_start${1+i}`, this.scale, -90);
-            this.blue_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `blue_start${1+i}`, this.scale, 90);
-            this.factories[i] = new Factory_Place(this.locus_x, this.locus_y, 'factory', this.scale, 'grey', 90);
+            this.red_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `red_start${1+i}`, this.scale, 0);
+            this.blue_starts[i] = new Start_Charger_Place(this.locus_x, this.locus_y, `blue_start${1+i}`, this.scale, 180);
+            this.factories[i] = new Factory_Place(this.locus_x, this.locus_y, 'factory', this.scale, 'grey', 0);
         }
         this.chargers[0] = new Start_Charger_Place(this.locus_x, this.locus_y, 'charger', this.scale, 90);
         this.chargers[1] = new Start_Charger_Place(this.locus_x, this.locus_y, 'charger', this.scale, -90);
@@ -127,8 +126,8 @@ class Map {
         this.chargers[1].get_data(data.polygon_info[9]);
 
         const team_value = Object.values(data.team_info)
-        let team_red_value = Object.values(team_value[0])
-        let team_blue_value = Object.values(team_value[1])
+        let team_red_value = Object.values(team_value[1])
+        let team_blue_value = Object.values(team_value[0])
         let red_players = Object.values(team_red_value[2])
         let blue_players = Object.values(team_blue_value[2])
 
@@ -261,11 +260,11 @@ class Drone extends Map_Object {
         }, 200);
     }
     get_data(player_data) {
-        super.x = player_data.current_pos[0];
-        super.y = player_data.current_pos[1];
-        super.angle = player_data.current_pos[3] / Math.PI * 180;
+        super.x = player_data.current_pos[1];
+        super.y = player_data.current_pos[0];
+        super.angle = player_data.current_pos[3] / Math.PI * 180 + 90;
 
-        this.is_bloking = player_data.is_bloking;
+        this.is_blocking = player_data.is_blocking;
         this.is_cargo = player_data.is_cargo;
         this.is_shooting = player_data.is_shooting;
         this.is_connected = player_data.is_connected;
@@ -279,8 +278,8 @@ class Start_Charger_Place extends Map_Object{
         super.angle = angle;
     }
     get_data(place_data) {
-        this.x = place_data.current_pos[0];
-        this.y = place_data.current_pos[1];
+        this.x = place_data.current_pos[1];
+        this.y = place_data.current_pos[0];
     }
 }
 
@@ -320,8 +319,8 @@ class Factory_Place extends Map_Object{
         }, 200);
     }
     get_data(place_data) {
-        this.x = place_data.current_pos[0];
-        this.y = place_data.current_pos[1];
+        this.x = place_data.current_pos[1];
+        this.y = place_data.current_pos[0];
 
         this.is_cargo = place_data.role_data.is_cargo;
         if (place_data.role_data.current_cargo_color[0] > 0) {
@@ -417,3 +416,4 @@ function add_keyboard(map) {
                 break;
         }
     }}
+
