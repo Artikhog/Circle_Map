@@ -25,13 +25,12 @@ class Map {
         this.chargers.length = 2;
         this.factories = [];
         this.factories.length = 4;
-        this.arrow_bitmap = get_scaled_bitmap('arrow', this.scale, 0.75);
+        this.arrow_bitmap = get_scaled_bitmap('arrow', this.scale, 0.55);
         this.arrow_bitmap.x = this.canvas_center;
         this.arrow_bitmap.y = this.canvas_center;
         this.arrow_bitmap.regY = this.canvas_center / this.arrow_bitmap.scaleY
         this.home_bitmap = get_scaled_bitmap('home', this.scale, 0.75);
-        this.home_bitmap.rotation = 180;
-        this.add_objects(); //добавляем обьекты в массивы
+        this.add_objects(); //инициализируем обьекты
     }
     draw_all_objects() {
         this.stage.removeAllChildren();
@@ -81,6 +80,15 @@ class Map {
         this.blue_team[1] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
         this.blue_team[2] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
         this.blue_team[3] = new Drone(this.locus_x, this.locus_y, 'blue_drone', 'blocked_drone', this.scale);
+
+        switch (this.main_drone_color) {
+            case 'red':
+                this.home_bitmap.rotation = 0;
+                break;
+            case 'blue':
+                this.home_bitmap.rotation = 180;
+                break;
+        }
     }
     draw_polygon_objects() {
         for (let i = 0; i < 4; i++) {
