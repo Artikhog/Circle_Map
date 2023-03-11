@@ -40,7 +40,7 @@ class Map {
         this.draw_polygon_objects();
         this.draw_players();
         this.update_coordinates();
-        this.add_arrow();
+        this.draw_arrow();
 
         this.draw_main_player()
     }
@@ -72,14 +72,14 @@ class Map {
 
 
         this.red_team[0] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
-        this.red_team[1] = new Drone(this.locus_x, this.locus_y, 'red_car', 'blocked_car', this.scale);
-        this.red_team[2] = new Drone(this.locus_x, this.locus_y, 'red_car', 'blocked_car', this.scale);
+        this.red_team[1] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
+        this.red_team[2] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
         this.red_team[3] = new Drone(this.locus_x, this.locus_y, 'red_drone', 'blocked_drone', this.scale);
 
-        this.blue_team[0] = new Drone(this.locus_x, this.locus_y, 'blue_drone', 'blocked_drone', this.scale);
+        this.blue_team[0] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
         this.blue_team[1] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
         this.blue_team[2] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
-        this.blue_team[3] = new Drone(this.locus_x, this.locus_y, 'blue_drone', 'blocked_drone', this.scale);
+        this.blue_team[3] = new Drone(this.locus_x, this.locus_y, 'blue_car', 'blocked_car', this.scale);
 
         switch (this.main_drone_color) {
             case 'red':
@@ -113,11 +113,11 @@ class Map {
         switch (this.main_drone_color) {
             case 'red':
                 this.red_team[this.main_drone_number].draw();
-                this.map_container.addChild(this.red_team[this.main_drone_number].object_bitmap);
+                this.map_container.addChild(this.red_team[this.main_drone_number].object_bitmap, this.red_team[this.main_drone_number].blocked_drone_bitmap, this.red_team[this.main_drone_number].cargo_bitmap);
                 break;
             case 'blue':
                 this.blue_team[this.main_drone_number].draw();
-                this.map_container.addChild(this.blue_team[this.main_drone_number].object_bitmap);
+                this.map_container.addChild(this.blue_team[this.main_drone_number].object_bitmap, this.blue_team[this.main_drone_number].blocked_drone_bitmap, this.blue_team[this.main_drone_number].cargo_bitmap);
                 break;
         }
     }
@@ -163,7 +163,7 @@ class Map {
             this.red_team[i].get_data(red_players[i]);
         }
     }
-    add_arrow() {
+    draw_arrow() {
         switch (this.main_drone_color) {
             case 'red':
                 this.home_bitmap.x = this.red_starts[this.main_drone_number].object_bitmap.x;
@@ -183,12 +183,10 @@ class Map {
         if ((dif_y**2+dif_x**2) * this.scale < this.canvas_center * 2) {
             this.arrow_bitmap.alpha = 0;
             this.home_bitmap.alpha = 1;
-            console.log('home')
         }
         else {
             this.arrow_bitmap.alpha = 1000;
             this.home_bitmap.alpha = 0;
-            console.log('arrow')
         }
         createjs.Tween.get(this.arrow_bitmap).to({
             rotation: - angle * 180 / Math.PI
@@ -302,7 +300,6 @@ class Drone extends Map_Object {
         this.is_shooting = player_data.is_shooting;
         this.is_connected = player_data.is_connected;
     }
-
 }
 
 class Start_Charger_Place extends Map_Object{
